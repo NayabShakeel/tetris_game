@@ -1,13 +1,22 @@
 {
-  "framework": null,
-  "installCommand": "pip install -r requirements.txt",
-  "buildCommand": "echo 'No build required'",
-  "outputDirectory": ".",
-  "devCommand": "streamlit run app.py --server.port $PORT",
+  "version": 2,
+  "builds": [
+    {
+      "src": "app.py",
+      "use": "@vercel/static",
+      "config": {
+        "distDir": "."
+      }
+    }
+  ],
   "routes": [
     {
       "src": "/(.*)",
       "dest": "/app.py"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
     }
   ]
 }
