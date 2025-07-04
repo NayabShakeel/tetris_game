@@ -31,10 +31,22 @@ COLORS = [
 
 class Tetris:
     def __init__(self):
+        pygame.mixer.pre_init(44100, -16, 2, 512)  # Smaller buffer for lower latency
+        pygame.mixer.init()
         self.grid = [[(0, 0, 0) for _ in range(GRID_WIDTH)] for _ in range(GRID_HEIGHT)]
         self.current_piece = self.new_piece()
         self.score = 0
         self.game_over = False
+        # Load sound effects
+        try:
+            self.land_sound = pygame.mixer.Sound("assets/sfx/land.wav")
+            self.clear_sound = pygame.mixer.Sound("assets/sfx/clear.wav")
+            self.gameover_sound = pygame.mixer.Sound("assets/sfx/gameover.wav")
+            self.land_sound.set_volume(0.5)
+            self.clear_sound.set_volume(0.7)
+            self.gameover_sound.set_volume(0.6)
+        except Exception as e:
+            print(f"Error loading sounds: {e}")
 
     def new_piece(self):
         shape = random.choice(SHAPES)
@@ -45,6 +57,11 @@ class Tetris:
         if not self.collision(self.current_piece, dx, dy):
             self.current_piece["x"] += dx
             self.current_piece["y"] += dy
+            if dy > 0:  # Play sound when piece lands
+                try:
+                    self.land_sound.play()
+                except:
+                    pass
             return True
         return False
 
@@ -78,7 +95,13 @@ class Tetris:
                 self.grid.pop(y)
                 self.grid.insert(0, [(0, 0, 0) for _ in range(GRID_WIDTH)])
                 lines_cleared += 1
-        self.score += lines_cleared * 100
+        if lines_cleared > 0:
+            self.score += lines_cleared * 100
+            try:
+                self.clear_sound.play()
+            except:
+                pass
+        return lines_cleared
 
     def update(self):
         if not self.move(0, 1):
@@ -87,6 +110,10 @@ class Tetris:
             self.current_piece = self.new_piece()
             if self.collision(self.current_piece):
                 self.game_over = True
+                try:
+                    self.gameover_sound.play()
+                except:
+                    pass
 
     def draw(self, screen):
         for y, row in enumerate(self.grid):
